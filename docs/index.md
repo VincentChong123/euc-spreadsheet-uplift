@@ -1,5 +1,8 @@
 # Governed AI-assisted spreadsheet
 
+> [!NOTE]
+> **Documentation Governance:** AI-assisted. Human review active. [See details](#governance-footnote).
+
 **Portfolio · Data Governance**
 
 This project applies critical data governance principles—**schema**, **lineage**, and **controls**—to AI-generated outputs. By treating AI output as a standard data element, it ensures appropriate oversight and traceability.
@@ -27,3 +30,10 @@ Refer https://github.com/VincentChong123/euc-spreadsheet-uplift#system-architect
 ---
 
 **Security:** This repository is a curated snapshot containing no credentials, real PII, or production data. It has been verified with security scanning tools (gitleaks & TruffleHog) prior to publishing.
+
+<br>
+
+<a id="governance-footnote"></a>
+*Generation Method: AI-Prompted (Engineered by Vincent Chong)*
+*Reviewer / Maintainer: Vincent Chong*
+*Audit Status: Human Review In Progress*

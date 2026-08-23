@@ -1,5 +1,10 @@
 # EUC Spreadsheet Uplift
 
+> [!NOTE]
+> **Documentation Governance:** AI-assisted. Human review active. [See details](#governance-footnote).
+
+*Note: This is a curated, partial mirror of a larger working prototype repository, synced periodically to present clean, reviewable code for my portfolio.*
+
 > **EUC governance by design: AI output governed like risk data.**
 
 A proof-of-concept demonstrating how to bring immediate governance to end-user computing (EUC) spreadsheets without disrupting workflows. This repository contains a curated slice of the codebase (Google Sheets UI → API Gateway → AI / Document Services).
@@ -11,6 +16,12 @@ A proof-of-concept demonstrating how to bring immediate governance to end-user c
 Enterprise **EUC spreadsheets** often handle critical operations but lack version control, lineage, and attribution. Forcing immediate migration to centralized IT systems disrupts workflows.
 
 This architecture explores **control at the point of materiality**. By moving the risk surface (PII, AI egress, provenance) behind a governed gateway, we achieve immediate, progressive governance without sacrificing the familiar user interface. It acts as a transitional bridge, allowing eventual EUC remediation once the backend fully supports Business As Usual (BAU).
+
+### User Interface
+
+![Side panel](./docs/img/Side_panel.jpeg)
+
+![Schema for AI governance](./docs/img/Schema_ai_governance.png)
 
 ### Why not just use Microsoft 365 Copilot?
 
@@ -92,5 +103,10 @@ An AI output is just another data element with poor lineage by default. It's hel
 Curated snapshot designed to exclude credentials, real PII, and production data (sample values in the spec CSVs are synthetic). Secrets are handled via environment / secret-manager and omitted from version control; a TruffleHog ruleset ([`.trufflehog/rules.yaml`](.trufflehog/rules.yaml)) guards for key patterns. Scanned with gitleaks & TruffleHog before publishing: see [`SECURITY.md`](SECURITY.md).
 
 ---
+
+<a id="governance-footnote"></a>
+*Generation Method: AI-Prompted (Engineered by Vincent Chong)*
+*Reviewer / Maintainer: Vincent Chong*
+*Audit Status: Human Review In Progress*
 
 **Contact:** ws.chong.sg@gmail.com
