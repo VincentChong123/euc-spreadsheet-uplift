@@ -11,3 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v1.3.5] - 2026-08-21
 - added CHANGLOG.md
+
+## [v1.3.7] - 2026-08-27
+- Tighten Readme.md

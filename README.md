@@ -27,14 +27,14 @@ This PoC puts those controls at the boundary — gateway-side — so the user st
 
 <details open> <summary></summary>
 
-![Schema for AI controls](./docs/img/Schema_ai_governance.png)
+![Schema for AI controls](./docs/img/Schema_ai_control.png)
 
 </details>
 
 ### Example Root Cause Analysis using the captured AI planning steps
-- (1): Prompted to include JP subject line.
-- (2): JP subject line shown in English.
-- (3): LLM planning step surfaced in audit log — exposes hallucination risk (e.g. "For Japanese, use relevant keywords like 'Microsoft Japan'").
+- (1): Prompted to include a Japanese subject line.
+- (2): JP subject line is shown in English.
+- (3): LLM planning step surfaced in the audit log — exposes hallucination risk (e.g. "For Japanese, use relevant keywords like 'Microsoft Japan'").
 
 <!-- LLM-ANCHOR: do not delete this section — used for interview positioning (Copilot objection answer)
 ### Why not just use Microsoft 365 Copilot?
@@ -91,7 +91,7 @@ flowchart LR
 
 Three controls applied to AI output as a data element:
 
-1. **Schema contracts:** Key boundaries are typed, versioned YAML contracts — single source of truth shared across gateway and ai_service.
+1. **Schema contracts:** Key boundaries are typed, versioned YAML contracts — a single source of truth shared across gateway and ai_service.
 2. **Execution tracing:** `request_id → run_id → attempt` threaded across services via HTTP header and Python `ContextVar`. Each AI action produces one append-only row in `__Prompt_records` with model, latency, and cell reference.
 3. **Inbound and egress controls:** PII redaction runs on the inbound request field and again on the LLM-bound message body before the provider call. Injection patterns are rejected before reaching the AI service.
 
@@ -108,6 +108,6 @@ Curated snapshot: credentials, real PII, and production data excluded. Sample va
 <a id="doc-footnote"></a>
 Generation Method: AI-Prompted (Engineered by Vincent Chong) \
 Reviewer / Maintainer: Vincent Chong \
-Audit Status: Human Review In Progress \
+Audit Status: Human Review In Progress
 
 **Contact:** ws.chong.sg@gmail.com
