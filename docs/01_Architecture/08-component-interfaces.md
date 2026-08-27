@@ -60,14 +60,14 @@ flowchart TB
 
 ## Boundary contracts (what each interface guarantees)
 
-| # | Boundary | Direction | Payload / contract |
-|---|---|---|---|
-| ① | Sheets UI → Gateway | ingress | Contract envelope `{ meta, payload }`; `x-request-id` header; prompt/context **already PII-masked client-side** |
-| ② | Gateway → AI Service | internal | `SheetPromptRequest { prompt, context, user }`; guardrail-cleaned |
-| ③ | AI Service → Gateway | egress | Plain **OpenAI chat-completions**, key-less (base_url points at gateway egress) |
-| ④ | Gateway → Provider | egress | Same body **+ injected provider credential** |
-| ⑤ | AI Service → Gateway | return | `{ result, meta:{ request_id, run_id, latency_ms, model_invoked, agent_name, timestamp } }` |
-| ⑥ | Gateway → Sheets UI | return | Re-wrapped contract response; client re-hydrates PII, writes cell + audit row |
+| # | Boundary | Direction | Payload / contract | Call artifacts |
+|---|---|---|---|---|
+| ① | Sheets UI → Gateway | ingress | Contract envelope `{ meta, payload }`; `x-request-id` header; prompt/context **already PII-masked client-side** | `apps/google-sheets-ui/Code.js` — `PrivacyEngine.mask()` → vault; `UrlFetchApp.fetch()` |
+| ② | Gateway → AI Service | internal | `SheetPromptRequest { prompt, context, user }`; guardrail-cleaned | `apps/api_gateway/middleware/guardrails.mjs` — rules from `specs/guardrail.yaml` (`GUARDRAIL_PATH`) |
+| ③ | AI Service → Gateway | egress | Plain **OpenAI chat-completions**, key-less (base_url points at gateway egress) | `apps/ai_service/app/agents/simple_agent.py` — `agent.run()` via `OpenAIProvider(base_url=LLM_BASE_URL)` |
+| ④ | Gateway → Provider | egress | Same body **+ injected provider credential** | `apps/api_gateway/routes/egress.mjs` — injects `LLM_PROVIDER` key from env |
+| ⑤ | AI Service → Gateway | return | `{ result, meta:{ request_id, run_id, latency_ms, model_invoked, agent_name, timestamp } }` | `apps/ai_service/app/api/routes.py` — `post_sheet_chat()` response envelope |
+| ⑥ | Gateway → Sheets UI | return | Re-wrapped contract response; client re-hydrates PII, writes cell + audit row | `apps/google-sheets-ui/Code.js` — `PrivacyEngine.rehydrate()` → vault; `logToPromptRecords()` |
 
 ## Responsibility split (key facts)
 
@@ -75,7 +75,7 @@ flowchart TB
   receives `context` as a pre-resolved string. It is **key-less and isolated**.
 - **`__Prompt_records_v2` is written by the Apps Script client**, not by
   `ai_service`. The sheet is a *human-readable mirror*, not the system of record
-  (see [07-security-auditability.md](../Governance/07-security-auditability.md) §4).
+  (see [07-security-auditability.md](07-security-auditability.md) §4).
 - **Provider credentials live only in the gateway egress** — `ai_service` stays
   key-less ([05-egress-llm.md](05-egress-llm.md)).
 - **Two guardrail layers**: input at the gateway (injection/PII), output at
@@ -86,7 +86,7 @@ flowchart TB
 
 - **No verified identity crosses ①.** `meta.user` is an *unsigned claim*; the
   gateway does not authenticate it — top production risk
-  ([07-security-auditability.md](../Governance/07-security-auditability.md) §1).
+  ([07-security-auditability.md](07-security-auditability.md) §1).
 - Response is **single-shot JSON** — no intermediate progress. See the future
   streaming path below.
 

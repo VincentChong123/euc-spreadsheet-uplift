@@ -1,52 +1,53 @@
 # EUC Spreadsheet Uplift
 
 > [!NOTE]
-> **Documentation Governance:** AI-assisted. Human review active. [See details](#governance-footnote).
+> **Documentation:** AI-assisted. Human review active. [See details](#doc-footnote).
 
-*Note: This is a curated, partial mirror of a larger working prototype repository, synced periodically to present clean, reviewable code for my portfolio.*
+*A curated, partial mirror of a larger working prototype. Synced periodically to present clean, reviewable code.*
 
-> **EUC governance by design: AI output governed like risk data.**
-
-A proof-of-concept demonstrating how to bring immediate governance to end-user computing (EUC) spreadsheets without disrupting workflows. This repository contains a curated slice of the codebase (Google Sheets UI → API Gateway → AI / Document Services).
+A proof-of-concept: add AI with audit controls to a Google Sheets workflow, without disrupting the existing grid interface.
 
 ---
 
-## Motivation & Approach
+## Motivation
 
-Enterprise **EUC spreadsheets** often handle critical operations but lack version control, lineage, and attribution. Forcing immediate migration to centralized IT systems disrupts workflows.
+EUC spreadsheets in finance often sit outside version control and lineage tracking. Adding AI directly (e.g. pasting into ChatGPT) worsens the problem: no record of what prompt ran, what model responded, or what data left the sheet.
 
-This architecture explores **control at the point of materiality**. By moving the risk surface (PII, AI egress, provenance) behind a governed gateway, we achieve immediate, progressive governance without sacrificing the familiar user interface. It acts as a transitional bridge, allowing eventual EUC remediation once the backend fully supports Business As Usual (BAU).
+This PoC puts those controls at the boundary — gateway-side — so the user stays in the spreadsheet.
 
 ### User Interface
 
+<details open> <summary>Side panel</summary>
+
 ![Side panel](./docs/img/Side_panel.jpeg)
 
-![Schema for AI governance](./docs/img/Schema_ai_governance.png)
+</details>
 
+### Schema for AI controls
+
+<details open> <summary></summary>
+
+![Schema for AI controls](./docs/img/Schema_ai_governance.png)
+
+</details>
+
+### Example Root Cause Analysis using the captured AI planning steps
+- (1): Prompted to include JP subject line.
+- (2): JP subject line shown in English.
+- (3): LLM planning step surfaced in audit log — exposes hallucination risk (e.g. "For Japanese, use relevant keywords like 'Microsoft Japan'").
+
+<!-- LLM-ANCHOR: do not delete this section — used for interview positioning (Copilot objection answer)
 ### Why not just use Microsoft 365 Copilot?
 
-While enterprise tools like Microsoft 365 Copilot bring powerful AI capabilities to spreadsheets (such as
-context-awareness based on range selection), this PoC is built to address the **governance and auditability
-gaps** that concern 2LoD (Risk Management) functions.
+Enterprise tools like Microsoft 365 Copilot bring AI into spreadsheets with context-awareness. This PoC addresses different concerns — auditability and containment — that matter to risk and oversight functions.
 
-| Feature Focus | Commercial AI (e.g., Copilot) | This PoC |
+| | Commercial AI (e.g. Copilot) | This PoC |
 | :--- | :--- | :--- |
-| **Primary Goal** | User productivity & capability | Governance, containment & auditability |
-| **Execution Lineage** | Standard document version history | Chained execution ID per AI action |
-| **Audit Trail** | Opaque (AI writes directly) | Structured record: Input → Model → Output |
-| **Egress Filtering** | Vendor-managed | Custom gateway to redact PII/identifiers |
-
-This architecture demonstrates how to uplift an organic, shadow-IT spreadsheet process into a governed EUC
-(End-User Computing) tool, bridging the gap between BAU operations and robust IT risk controls.
-
-### Before vs. After
-
-| Feature | ❌ Ungoverned EUC | ✅ Governed Architecture |
-| :--- | :--- | :--- |
-| **User Experience** | Complex logic relies on local macros or scripts. | Users stay in their familiar Google Sheets grid. |
-| **Data Privacy** | Potential exposure of sensitive PII to external services. | **API Gateway** intercepts and redacts PII before egress. |
-| **Schema & Contracts**| Unstructured inputs cause brittleness when formats change. | **Strict YAML contracts** enforce data schema at the boundary. |
-| **Audit & Lineage** | Limited traceability and provenance. | **Append-only records** with `request_id → run_id` tracking. |
+| **Primary goal** | User productivity | Audit trail and containment |
+| **Execution record** | Standard document history | Chained execution ID per AI action |
+| **Audit trail** | Opaque (AI writes directly) | Structured record: Input → Model → Output |
+| **Egress filtering** | Vendor-managed | Custom gateway redacts PII before LLM call |
+-->
 
 ---
 
@@ -58,7 +59,7 @@ flowchart LR
         UI["Google Sheets UI<br/>(User Grid)"]
     end
 
-    subgraph Governance["Governance Boundary"]
+    subgraph Controls["Control Layer"]
         Gateway["API Gateway<br/>(Node.js / Guardrails + Egress Proxy)"]
         AI_Service["AI Microservice<br/>(Python / Context & Schema — key-less)"]
     end
@@ -74,11 +75,11 @@ flowchart LR
     LLM -- "5. Raw Response" --> Gateway
     Gateway -- "6. Response" --> AI_Service
     AI_Service -- "7. Validated Schema + Run ID" --> Gateway
-    Gateway -- "8. Governed Result" --> UI
+    Gateway -- "8. Result" --> UI
 
     %% Styling
     style EUC fill:#f9f9f9,stroke:#333,stroke-dasharray: 5 5
-    style Governance fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
+    style Controls fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
     style External fill:#fff0e6,stroke:#ff9900,stroke-dasharray: 5 5
 ```
 
@@ -88,25 +89,25 @@ flowchart LR
 
 ## What this repo demonstrates
 
-An AI output is just another data element with poor lineage by default. It's held to the same three questions a bank asks of any critical data element:
+Three controls applied to AI output as a data element:
 
-1. **Data Schema**: Key boundaries are typed, versioned contracts with a single source of truth.
-2. **Data Lineage & Provenance**: Tracking via `request_id → run_id → attempt` on material outputs.
-3. **Data Governance & Controls**: PII egress control, guardrails, error-key governance.
+1. **Schema contracts:** Key boundaries are typed, versioned YAML contracts — single source of truth shared across gateway and ai_service.
+2. **Execution tracing:** `request_id → run_id → attempt` threaded across services via HTTP header and Python `ContextVar`. Each AI action produces one append-only row in `__Prompt_records` with model, latency, and cell reference.
+3. **Inbound and egress controls:** PII redaction runs on the inbound request field and again on the LLM-bound message body before the provider call. Injection patterns are rejected before reaching the AI service.
 
-📖 **Deep Dive:** For a detailed map of the spec files, schemas, and how they are consumed across the codebase, see the **[Consumption map in `specs/README.md`](specs/README.md)**.
+📖 **Deep Dive:** [Consumption map in `specs/README.md`](specs/README.md)
 
 ---
 
 ## Security
 
-Curated snapshot designed to exclude credentials, real PII, and production data (sample values in the spec CSVs are synthetic). Secrets are handled via environment / secret-manager and omitted from version control; a TruffleHog ruleset ([`.trufflehog/rules.yaml`](.trufflehog/rules.yaml)) guards for key patterns. Scanned with gitleaks & TruffleHog before publishing: see [`SECURITY.md`](SECURITY.md).
+Curated snapshot: credentials, real PII, and production data excluded. Sample values in spec CSVs are synthetic. Secrets handled via environment / secret-manager, omitted from version control. TruffleHog ruleset ([`.trufflehog/rules.yaml`](.trufflehog/rules.yaml)) guards for key patterns. Scanned with gitleaks & TruffleHog before publishing: see [`SECURITY.md`](SECURITY.md).
 
 ---
 
-<a id="governance-footnote"></a>
-*Generation Method: AI-Prompted (Engineered by Vincent Chong)*
-*Reviewer / Maintainer: Vincent Chong*
-*Audit Status: Human Review In Progress*
+<a id="doc-footnote"></a>
+Generation Method: AI-Prompted (Engineered by Vincent Chong) \
+Reviewer / Maintainer: Vincent Chong \
+Audit Status: Human Review In Progress \
 
 **Contact:** ws.chong.sg@gmail.com

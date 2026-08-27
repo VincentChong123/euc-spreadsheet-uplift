@@ -34,6 +34,7 @@ Refer https://github.com/VincentChong123/euc-spreadsheet-uplift#system-architect
 <br>
 
 <a id="governance-footnote"></a>
+
 *Generation Method: AI-Prompted (Engineered by Vincent Chong)*
 *Reviewer / Maintainer: Vincent Chong*
 *Audit Status: Human Review In Progress*
