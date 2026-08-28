@@ -15,7 +15,10 @@ EUC spreadsheets in finance often sit outside version control and lineage tracki
 
 This PoC puts those controls at the boundary — gateway-side — so the user stays in the spreadsheet.
 
-### User Interface
+<a id="poc"></a>
+## Proof of Concept Walkthrough
+
+### 1. GUI
 
 <details open> <summary>Side panel</summary>
 
@@ -23,7 +26,7 @@ This PoC puts those controls at the boundary — gateway-side — so the user st
 
 </details>
 
-### Schema for AI controls
+### 2. Schema for AI Controls
 
 <details open> <summary></summary>
 
@@ -31,7 +34,7 @@ This PoC puts those controls at the boundary — gateway-side — so the user st
 
 </details>
 
-### Example Root Cause Analysis using the captured AI planning steps
+### 3. Root Cause Analysis Example
 - (1): Prompted to include a Japanese subject line.
 - (2): JP subject line is shown in English.
 - (3): LLM planning step surfaced in the audit log — exposes hallucination risk (e.g. "For Japanese, use relevant keywords like 'Microsoft Japan'").
@@ -87,7 +90,7 @@ flowchart LR
 
 ---
 
-## What this repo demonstrates
+## Core Demonstrations
 
 Three controls applied to AI output as a data element:
 
